@@ -1,0 +1,21 @@
+[package]
+name = "no"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[build-dependencies]
+embed-resource = "1.8"
+
+[dependencies]
+# WARNING: TURN OFF dynamic_linking to build release
+bevy = { version = "0.14.2", features = ["dynamic_linking"] } # cargo run
+# bevy = { version = "0.14.2" } # cargo build --release
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+# Enable a large amount of optimization in the dev profile for dependencies.
+[profile.dev.package."*"]
+opt-level = 3
