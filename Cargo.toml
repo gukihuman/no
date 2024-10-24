@@ -4,13 +4,16 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
-[build-dependencies]
-embed-resource = "1.8"
-
 [dependencies]
+serde = { version = "1.0.213", features = ["derive"] } # settings
+toml = "0.8.19" # settings
+
 # WARNING: TURN OFF dynamic_linking to build release
 bevy = { version = "0.14.2", features = ["dynamic_linking"] } # cargo run
 # bevy = { version = "0.14.2" } # cargo build --release
+
+[build-dependencies]
+embed-resource = "1.8"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

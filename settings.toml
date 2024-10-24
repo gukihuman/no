@@ -1,0 +1,5 @@
+[window]
+width = 2560
+height = 1600
+mode = "fullscreen"
+background_image = "cover"
