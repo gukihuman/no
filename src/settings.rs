@@ -15,6 +15,7 @@ pub struct WindowSettings {
     pub height: u32,
     mode: String,
     pub background_image: String,
+    pub ui_scale: f32,
 }
 impl Default for GameSettings {
     fn default() -> Self {
@@ -24,6 +25,7 @@ impl Default for GameSettings {
                 height: 1080,
                 mode: "fullscreen".to_string(),
                 background_image: "cover".to_string(),
+                ui_scale: 2.,
             },
         }
     }

@@ -9,10 +9,10 @@ use bevy::{
     },
     window::WindowResized,
 };
-const CANVAS_INTERNAL_WIDTH: f32 = 512.;
-const CANVAS_INTERNAL_HEIGHT: f32 = 288.;
+const BACKGROUND_WIDTH: f32 = 512.;
+const BACKGRAUND_HEIGHT: f32 = 288.;
 pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
-pub const UI_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
+pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
 #[derive(Resource)]
 pub struct CanvasResource {
     size: Extent3d,
@@ -71,11 +71,11 @@ pub fn setup_cameras(
             ..default()
         },
         Canvas,
-        UI_LAYER,
+        OUTER_LAYER,
     ));
-    commands.spawn((Camera2dBundle::default(), UI_LAYER));
-    let scale_x = canvas_size.width as f32 / CANVAS_INTERNAL_WIDTH;
-    let scale_y = canvas_size.height as f32 / CANVAS_INTERNAL_HEIGHT;
+    commands.spawn((Camera2dBundle::default(), OUTER_LAYER));
+    let scale_x = canvas_size.width as f32 / BACKGROUND_WIDTH;
+    let scale_y = canvas_size.height as f32 / BACKGRAUND_HEIGHT;
     commands.insert_resource(CanvasResource {
         size: canvas_size,
         scale: match settings.window.background_image.as_str() {
