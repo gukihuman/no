@@ -1,5 +1,6 @@
-use crate::*;
+use crate::settings::GameSettings;
 use bevy::{
+    prelude::*,
     render::{
         camera::RenderTarget,
         render_resource::{
@@ -9,17 +10,6 @@ use bevy::{
     },
     window::WindowResized,
 };
-const BACKGROUND_WIDTH: f32 = 512.;
-const BACKGRAUND_HEIGHT: f32 = 288.;
-pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
-pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
-#[derive(Resource)]
-pub struct CanvasResource {
-    size: Extent3d,
-    pub scale: f32,
-}
-#[derive(Component)]
-struct Canvas;
 pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
@@ -27,10 +17,26 @@ impl Plugin for CameraPlugin {
             .add_systems(Update, fit_canvas);
     }
 }
+const BACKGROUND_WIDTH: f32 = 512.;
+const BACKGRAUND_HEIGHT: f32 = 288.;
+pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
+pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
+#[derive(Resource)]
+pub struct CanvasScaleFit(pub f32);
+#[derive(Resource)]
+pub struct CanvasScaleCover(pub f32);
+#[derive(Resource)]
+pub struct OuterScale(pub f32);
+#[derive(Component)]
+pub struct CanvasCamera;
+#[derive(Component)]
+pub struct OuterCamera;
+#[derive(Component)]
+struct Canvas;
 pub fn setup_cameras(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
-    settings: Res<settings::GameSettings>,
+    settings: Res<GameSettings>,
 ) {
     let canvas_size = Extent3d {
         width: settings.window.width,
@@ -63,6 +69,7 @@ pub fn setup_cameras(
             },
             ..default()
         },
+        CanvasCamera,
         CANVAS_LAYER,
     ));
     commands.spawn((
@@ -73,29 +80,25 @@ pub fn setup_cameras(
         Canvas,
         OUTER_LAYER,
     ));
-    commands.spawn((Camera2dBundle::default(), OUTER_LAYER));
+    commands.spawn((Camera2dBundle::default(), OuterCamera, OUTER_LAYER));
     let scale_x = canvas_size.width as f32 / BACKGROUND_WIDTH;
     let scale_y = canvas_size.height as f32 / BACKGRAUND_HEIGHT;
-    commands.insert_resource(CanvasResource {
-        size: canvas_size,
-        scale: match settings.window.background_image.as_str() {
-            "fit" => scale_x.min(scale_y),
-            "cover" => scale_x.max(scale_y),
-            _ => scale_x.min(scale_y),
-        },
-    });
+    commands.insert_resource(CanvasScaleFit(scale_x.min(scale_y)));
+    commands.insert_resource(CanvasScaleCover(scale_x.max(scale_y)));
+    commands.insert_resource(OuterScale(1.));
 }
 fn fit_canvas(
     mut resize_events: EventReader<WindowResized>,
     mut transforms: Query<&mut Transform, With<Canvas>>,
-    canvas: Res<CanvasResource>,
+    mut outer_scale: ResMut<OuterScale>,
+    settings: Res<GameSettings>,
 ) {
     for event in resize_events.read() {
-        let scale_x = event.width / canvas.size.width as f32;
-        let scale_y = event.height / canvas.size.height as f32;
-        let scale = scale_x.min(scale_y);
+        let scale_x = event.width / settings.window.width as f32;
+        let scale_y = event.height / settings.window.height as f32;
+        outer_scale.0 = scale_x.min(scale_y);
         if let Ok(mut transform) = transforms.get_single_mut() {
-            transform.scale = Vec3::new(scale, scale, 1.);
+            transform.scale = Vec3::new(outer_scale.0, outer_scale.0, 1.);
         }
     }
 }
