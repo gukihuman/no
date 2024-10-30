@@ -1,10 +1,10 @@
 use crate::{
+    actions::Actions,
     cameras::{CanvasScaleCover, CanvasScaleFit},
     cursor::{update_cursor_position, CursorPosition},
-    elements::{ElementAction, ScaleCover},
-    game_data::GameData,
+    elements::{ElementAction, ElementId, ScaleCover},
     settings::GameSettings,
-    steps::NextStepID,
+    views::{ViewMap, ViewStack},
 };
 use bevy::prelude::*;
 pub struct InteractionsPlugin;
@@ -36,17 +36,21 @@ fn handle_interactions(
         &mut ScaleCover,
         &GlobalTransform,
         &Handle<Image>,
+        &ElementId,
     )>,
     mouse_button: Res<ButtonInput<MouseButton>>,
     images: Res<Assets<Image>>,
     canvas_scale_fit: Res<CanvasScaleFit>,
     canvas_scale_cover: Res<CanvasScaleCover>,
     cursor_position: Res<CursorPosition>,
-    mut next_step: ResMut<NextStepID>,
-    mut game_data: ResMut<GameData>,
     settings: Res<GameSettings>,
+    view_stack: Res<ViewStack>,
+    view_map: Res<ViewMap>,
+    mut actions: ResMut<Actions>,
 ) {
-    for (mut interactive, mut sprite, scale_cover, transform, image_handle) in &mut query {
+    for (mut interactive, mut sprite, scale_cover, transform, image_handle, element_id) in
+        &mut query
+    {
         if let Some(image) = images.get(image_handle) {
             let mut sprite_size = Vec2::new(image.size().x as f32, image.size().y as f32);
             match settings.window.background_image.as_str() {
@@ -61,7 +65,6 @@ fn handle_interactions(
                 _ => sprite_size = sprite_size * canvas_scale_fit.0,
             };
             let sprite_pos = transform.translation().truncate();
-            // sprite bounds
             let half_size = sprite_size / 2.0;
             let left = sprite_pos.x - half_size.x;
             let right = sprite_pos.x + half_size.x;
@@ -80,21 +83,25 @@ fn handle_interactions(
                 let pixel_y = (sprite_local_pos.y * image.size().y as f32) as u32;
                 if let Some(alpha) = get_pixel_alpha(image, pixel_x, pixel_y) {
                     if alpha > 0.1 {
-                        interactive.is_hovered = true;
-                        sprite.color = HOVER_COLOR;
-                        if mouse_button.just_pressed(MouseButton::Left) {
-                            for action in &interactive.actions {
-                                match action {
-                                    ElementAction::ChangeStep(step_id) => {
-                                        next_step.0 = step_id.clone();
-                                    }
-                                    ElementAction::ModifyResource(resource_name, op) => {
-                                        game_data.modify_resource(resource_name, op);
-                                    }
-                                }
-                            }
+                        let should_handle_actions = if view_stack.0.is_empty() {
+                            true
+                        } else if let Some(current_view_id) = view_stack.0.last() {
+                            view_map
+                                .0
+                                .get(current_view_id)
+                                .map(|view| view.0.contains(&element_id.0))
+                                .unwrap_or(false)
+                        } else {
+                            false
+                        };
+                        if should_handle_actions && mouse_button.just_pressed(MouseButton::Left) {
+                            actions.0.extend(interactive.actions.clone());
                         }
-                        continue;
+                        if should_handle_actions {
+                            interactive.is_hovered = true;
+                            sprite.color = HOVER_COLOR;
+                            continue;
+                        }
                     }
                 }
             }

@@ -71,13 +71,19 @@ impl Default for ImageElement {
 #[derive(Component, Clone)]
 pub enum ElementAction {
     ChangeStep(String),
-    ModifyResource(String, ResourceOp),
+    ChangeGameData(String, ResourceOp),
+    ChangeViewStack(ViewStackOp),
 }
 #[derive(Component, Clone)]
 pub enum ResourceOp {
     Increment(i32),
     Decrement(i32),
     SetValue(i32),
+}
+#[derive(Component, Clone)]
+pub enum ViewStackOp {
+    Push(String),
+    Pop(),
 }
 #[derive(Component, Clone)]
 pub enum Element {

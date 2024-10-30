@@ -25,7 +25,7 @@ impl GameData {
             println!("Warning: Trying to set non-existent key '{}'", name);
         }
     }
-    pub fn modify_resource(&mut self, name: &str, op: &ResourceOp) {
+    pub fn change_field(&mut self, name: &str, op: &ResourceOp) {
         let current = self.get(name);
         let new_value = match op {
             ResourceOp::Increment(value) => current + value,
