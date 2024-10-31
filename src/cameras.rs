@@ -17,8 +17,8 @@ impl Plugin for CameraPlugin {
             .add_systems(Update, fit_canvas);
     }
 }
-const BACKGROUND_WIDTH: f32 = 512.;
-const BACKGRAUND_HEIGHT: f32 = 288.;
+const BACKGROUND_WIDTH: f32 = 960.;
+const BACKGRAUND_HEIGHT: f32 = 540.;
 pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
 pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
 #[derive(Resource)]

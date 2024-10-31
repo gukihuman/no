@@ -23,7 +23,7 @@ impl Default for TextElement {
             content: String::new(),
             position: Vec3::ZERO,
             color: Color::WHITE,
-            font_size: 8.0,
+            font_size: 16.0,
             anchor: Anchor::Center,
         }
     }
@@ -44,7 +44,7 @@ impl Default for TextButtonElement {
             content: String::new(),
             path: String::new(),
             position: Vec3::ZERO,
-            font_size: 8.0,
+            font_size: 16.0,
             image_color: Color::WHITE,
             text_color: Color::WHITE,
             actions: Vec::new(),

@@ -20,7 +20,7 @@ fn setup(
     element_map.0.insert(
         "main_menu_background".into(),
         Element::Image(ImageElement {
-            path: "main_menu/background.png".into(),
+            path: "main_menu/bunny_initial.webp".into(),
             ..default()
         }),
     );
@@ -28,7 +28,7 @@ fn setup(
         "main_menu_version".into(),
         Element::Text(TextElement {
             content: "version 0.1.0".into(),
-            position: Vec3::new(246., -136., 1.),
+            position: Vec3::new(470., -260., 1.),
             anchor: BottomRight,
             ..default()
         }),
@@ -36,7 +36,7 @@ fn setup(
     element_map.0.insert(
         "main_menu_arrow".into(),
         Element::Image(ImageElement {
-            path: "main_menu/arrow.png".into(),
+            path: "main_menu/arrow.webp".into(),
             color: Color::srgba(1., 1., 1., 0.5),
             position: Vec3::new(0., 0., 1.),
             actions: Vec::from([
@@ -51,9 +51,9 @@ fn setup(
         "main_menu_button_start".into(),
         Element::TextButton(TextButtonElement {
             content: "Start".into(),
-            path: "button.png".into(),
+            path: "button.webp".into(),
             position: Vec3::new(0., 0., 1.),
-            font_size: 20.,
+            font_size: 22.,
             actions: Vec::from([ElementAction::ChangeStep("empty".into())]),
             ..default()
         }),
@@ -62,9 +62,9 @@ fn setup(
         "main_menu_button_settings".into(),
         Element::TextButton(TextButtonElement {
             content: "Settings".into(),
-            path: "button.png".into(),
+            path: "button.webp".into(),
             position: Vec3::new(0., -50., 1.),
-            font_size: 20.,
+            font_size: 22.,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Push(
                 "settings".into(),
             ))]),

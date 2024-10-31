@@ -20,13 +20,13 @@ fn setup(mut commands: Commands, canvas_scale_fit: Res<CanvasScaleFit>) {
             text: Text::from_section(
                 "",
                 TextStyle {
-                    font_size: 10. * canvas_scale_fit.0,
+                    font_size: 18. * canvas_scale_fit.0,
                     ..default()
                 },
             )
             .with_justify(JustifyText::Left),
             text_anchor: TopLeft,
-            transform: Transform::from_translation(Vec3::new(-246., 136., 1.) * canvas_scale_fit.0),
+            transform: Transform::from_translation(Vec3::new(-470., 260., 1.) * canvas_scale_fit.0),
             ..default()
         },
         Gold,

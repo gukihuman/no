@@ -17,7 +17,7 @@ fn setup(asset_server: Res<AssetServer>, mut commands: Commands, mut windows: Qu
     windows.single_mut().cursor.visible = false;
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("cursor.png"),
+            texture: asset_server.load("cursor.webp"),
             ..default()
         },
         OUTER_LAYER,
