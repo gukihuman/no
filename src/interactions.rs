@@ -2,7 +2,7 @@ use crate::{
     actions::Actions,
     cameras::{CanvasScaleCover, CanvasScaleFit},
     cursor::{update_cursor_position, CursorPosition},
-    elements::{ElementAction, ElementId, ScaleCover},
+    elements::{ElementAction, ElementId, OnlyFitScale},
     settings::GameSettings,
     views::{ViewMap, ViewStack},
 };
@@ -33,7 +33,7 @@ fn handle_interactions(
     mut query: Query<(
         &mut Interactive,
         &mut Sprite,
-        &mut ScaleCover,
+        &mut OnlyFitScale,
         &GlobalTransform,
         &Handle<Image>,
         &ElementId,
@@ -48,7 +48,7 @@ fn handle_interactions(
     view_map: Res<ViewMap>,
     mut actions: ResMut<Actions>,
 ) {
-    for (mut interactive, mut sprite, scale_cover, transform, image_handle, element_id) in
+    for (mut interactive, mut sprite, only_fit_scale, transform, image_handle, element_id) in
         &mut query
     {
         if let Some(image) = images.get(image_handle) {
@@ -56,10 +56,10 @@ fn handle_interactions(
             match settings.window.background_image.as_str() {
                 "fit" => sprite_size = sprite_size * canvas_scale_fit.0,
                 "cover" => {
-                    if scale_cover.0 {
-                        sprite_size = sprite_size * canvas_scale_cover.0
-                    } else {
+                    if only_fit_scale.0 {
                         sprite_size = sprite_size * canvas_scale_fit.0
+                    } else {
+                        sprite_size = sprite_size * canvas_scale_cover.0
                     }
                 }
                 _ => sprite_size = sprite_size * canvas_scale_fit.0,

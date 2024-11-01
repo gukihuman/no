@@ -1,4 +1,4 @@
-use crate::elements::ResourceOp;
+use crate::elements::GameDataOp;
 use bevy::prelude::*;
 use std::collections::HashMap;
 pub struct GameDataPlugin;
@@ -25,12 +25,12 @@ impl GameData {
             println!("Warning: Trying to set non-existent key '{}'", name);
         }
     }
-    pub fn change_field(&mut self, name: &str, op: &ResourceOp) {
+    pub fn change_field(&mut self, name: &str, op: &GameDataOp) {
         let current = self.get(name);
         let new_value = match op {
-            ResourceOp::Increment(value) => current + value,
-            ResourceOp::Decrement(value) => current - value,
-            ResourceOp::SetValue(value) => *value,
+            GameDataOp::Increment(value) => current + value,
+            GameDataOp::Decrement(value) => current - value,
+            GameDataOp::SetValue(value) => *value,
         };
         self.set(name, new_value);
     }

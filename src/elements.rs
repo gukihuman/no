@@ -8,7 +8,7 @@ impl Plugin for ElementsPlugin {
     }
 }
 #[derive(Component)]
-pub struct ScaleCover(pub bool);
+pub struct OnlyFitScale(pub bool);
 #[derive(Clone)]
 pub struct TextElement {
     pub content: String,
@@ -29,7 +29,7 @@ impl Default for TextElement {
     }
 }
 #[derive(Component, Clone)]
-pub struct TextButtonElement {
+pub struct TextImageElement {
     pub content: String,
     pub path: String,
     pub position: Vec3,
@@ -38,7 +38,7 @@ pub struct TextButtonElement {
     pub text_color: Color,
     pub actions: Vec<ElementAction>,
 }
-impl Default for TextButtonElement {
+impl Default for TextImageElement {
     fn default() -> Self {
         Self {
             content: String::new(),
@@ -71,25 +71,33 @@ impl Default for ImageElement {
 #[derive(Component, Clone)]
 pub enum ElementAction {
     ChangeStep(String),
-    ChangeGameData(String, ResourceOp),
+    ChangeGameData(String, GameDataOp),
     ChangeViewStack(ViewStackOp),
+    ChangeSetting(SettingOp),
 }
-#[derive(Component, Clone)]
-pub enum ResourceOp {
+#[derive(Clone)]
+pub enum GameDataOp {
     Increment(i32),
     Decrement(i32),
     SetValue(i32),
 }
-#[derive(Component, Clone)]
+#[derive(Clone)]
 pub enum ViewStackOp {
     Push(String),
     Pop(),
+}
+#[derive(Clone)]
+pub enum SettingOp {
+    SetResolution(u32, u32),
+    ToggleWindowMode(),
+    ToggleBackgroundImage(),
+    ToggleCustomCursor(),
 }
 #[derive(Component, Clone)]
 pub enum Element {
     Text(TextElement),
     Image(ImageElement),
-    TextButton(TextButtonElement),
+    TextImage(TextImageElement),
 }
 #[derive(Component)]
 pub struct ElementId(pub String);
@@ -125,7 +133,7 @@ pub fn spawn_element(
                     transform: Transform::from_translation(text.position * canvas_scale_fit),
                     ..default()
                 },
-                ScaleCover(false),
+                OnlyFitScale(true),
                 ElementId(element_id.into()),
             ));
         }
@@ -144,15 +152,15 @@ pub fn spawn_element(
                 ElementId(element_id.into()),
             ));
             if !image.actions.is_empty() {
-                entity_commands.insert(ScaleCover(true));
                 entity_commands.insert(Interactive {
                     color: image.color.clone(),
                     actions: image.actions.clone(),
                     ..default()
                 });
+                entity_commands.insert(OnlyFitScale(false));
             }
         }
-        Element::TextButton(text_button) => {
+        Element::TextImage(text_button) => {
             let mut entity_commands = commands.spawn((
                 SpriteBundle {
                     sprite: Sprite {
@@ -176,7 +184,7 @@ pub fn spawn_element(
                     actions: text_button.actions.clone(),
                     ..default()
                 });
-                entity_commands.insert(ScaleCover(false));
+                entity_commands.insert(OnlyFitScale(true));
             }
             entity_commands.with_children(|parent| {
                 parent.spawn(Text2dBundle {

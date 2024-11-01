@@ -1,6 +1,8 @@
 use crate::{
-    cameras::{setup_cameras, CanvasScaleFit},
+    cameras::setup_cameras,
+    elements::{Element, ElementId, ElementMap, TextElement},
     game_data::GameData,
+    steps::{ElementSet, StepMap},
 };
 use bevy::{prelude::*, sprite::Anchor::TopLeft, time::Time};
 pub struct DevToolsPlugin;
@@ -12,29 +14,32 @@ impl Plugin for DevToolsPlugin {
 }
 #[derive(Resource)]
 pub struct DebugTimer(pub Timer);
-#[derive(Component)]
-pub struct Gold;
-fn setup(mut commands: Commands, canvas_scale_fit: Res<CanvasScaleFit>) {
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(
-                "",
-                TextStyle {
-                    font_size: 18. * canvas_scale_fit.0,
-                    ..default()
-                },
-            )
-            .with_justify(JustifyText::Left),
-            text_anchor: TopLeft,
-            transform: Transform::from_translation(Vec3::new(-470., 260., 1.) * canvas_scale_fit.0),
+fn setup(
+    mut element_map: ResMut<ElementMap>,
+    mut step_map: ResMut<StepMap>,
+    game_data: Res<GameData>,
+) {
+    let mut elements = ElementSet::new();
+    elements.insert("dev_tools_gold".into());
+    element_map.0.insert(
+        "dev_tools_gold".into(),
+        Element::Text(TextElement {
+            content: format!("Gold: {}", game_data.get("gold")).into(),
+            font_size: 18.,
+            position: Vec3::new(-470., 260., 1.),
+            anchor: TopLeft,
             ..default()
-        },
-        Gold,
-    ));
+        }),
+    );
+    if let Some(main_menu) = step_map.0.get_mut("main_menu") {
+        main_menu.0.extend(elements.clone());
+    }
 }
-pub fn update_cursor_position(mut query: Query<&mut Text, With<Gold>>, game_data: Res<GameData>) {
-    for mut text in &mut query {
-        text.sections[0].value = format!("Gold: {}", game_data.get("gold"));
+pub fn update_cursor_position(mut query: Query<(&mut Text, &ElementId)>, game_data: Res<GameData>) {
+    for (mut text, element_id) in query.iter_mut() {
+        if element_id.0 == "dev_tools_gold" {
+            text.sections[0].value = format!("Gold: {}", game_data.get("gold"));
+        }
     }
 }
 

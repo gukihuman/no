@@ -15,4 +15,3 @@ pub struct View(pub ElementSet);
 pub struct ViewMap(pub HashMap<String, View>);
 #[derive(Resource)]
 pub struct ViewStack(pub Vec<String>);
-// fn on_view_stack_change() {}

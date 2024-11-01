@@ -10,27 +10,27 @@ impl Plugin for SettingsPlugin {
         let settings = get_settings();
         let window_plugin = apply_window_settings(&settings);
         app.insert_resource(settings)
-            .insert_resource(Msaa::Off)
-            .add_plugins(
-                DefaultPlugins
-                    .set(window_plugin)
-                    .set(ImagePlugin::default_nearest())
-                    .build(),
-            );
+            .insert_resource(ClearColor(Color::BLACK))
+            .add_plugins(DefaultPlugins.set(window_plugin).build());
     }
 }
 const TITLE: &str = "Nectar Obsession";
-const SETTINGS_PATH: &str = "settings.toml";
-#[derive(Resource, Serialize, Deserialize, Debug, Clone)]
-pub struct GameSettings {
-    pub window: WindowSettings,
-}
+pub const SETTINGS_PATH: &str = "settings.toml";
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WindowSettings {
     pub width: u32,
     pub height: u32,
-    mode: String,
+    pub mode: String,
     pub background_image: String,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct OtherSettings {
+    pub custom_cursor: bool,
+}
+#[derive(Resource, Serialize, Deserialize, Debug, Clone)]
+pub struct GameSettings {
+    pub window: WindowSettings,
+    pub other: OtherSettings,
 }
 impl Default for GameSettings {
     fn default() -> Self {
@@ -40,6 +40,9 @@ impl Default for GameSettings {
                 height: 1080,
                 mode: "fullscreen".into(),
                 background_image: "cover".into(),
+            },
+            other: OtherSettings {
+                custom_cursor: true,
             },
         }
     }

@@ -22,7 +22,7 @@ pub struct Step(pub ElementSet);
 #[derive(Resource)]
 pub struct StepMap(pub HashMap<String, Step>);
 #[derive(Resource)]
-pub struct CurrentStepID(String);
+pub struct CurrentStepID(pub String);
 #[derive(Resource)]
 pub struct NextStepID(pub String);
 fn on_step_change(

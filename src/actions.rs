@@ -1,34 +1,48 @@
 use crate::{
-    cameras::{CanvasScaleCover, CanvasScaleFit},
-    elements::{spawn_element, ElementAction, ElementId, ElementMap, ViewStackOp},
+    cameras::{CanvasResetRequest, CanvasScaleCover, CanvasScaleFit},
+    cursor::CursorResetRequest,
+    elements::{
+        spawn_element, Element, ElementAction, ElementId, ElementMap, SettingOp, ViewStackOp,
+    },
     game_data::GameData,
-    settings::GameSettings,
+    settings::{GameSettings, SETTINGS_PATH},
     steps::NextStepID,
     views::{ViewMap, ViewStack},
 };
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowMode};
+use std::fs;
 pub struct ClicksPlugin;
 impl Plugin for ClicksPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Actions>()
-            .add_systems(Update, handle_actions);
+            .init_resource::<RestoreFullscreen>()
+            .add_systems(
+                Update,
+                (handle_actions, restore_fullscreen.before(handle_actions)),
+            );
     }
 }
 #[derive(Resource, Default)]
 pub struct Actions(pub Vec<ElementAction>);
-fn handle_actions(
+#[derive(Resource, Default)]
+pub struct RestoreFullscreen(bool);
+pub fn handle_actions(
     mut actions: ResMut<Actions>,
     mut next_step: ResMut<NextStepID>,
     mut game_data: ResMut<GameData>,
     mut view_stack: ResMut<ViewStack>,
     view_map: Res<ViewMap>,
-    element_map: Res<ElementMap>,
+    mut element_map: ResMut<ElementMap>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     elements_query: Query<(Entity, &ElementId)>,
     canvas_scale_fit: Res<CanvasScaleFit>,
     canvas_scale_cover: Res<CanvasScaleCover>,
-    settings: Res<GameSettings>,
+    mut settings: ResMut<GameSettings>,
+    mut query: Query<&mut Text>,
+    parents_query: Query<(&Children, &ElementId)>,
+    mut windows: Query<&mut Window>,
+    mut restore_fullscreen_flag: ResMut<RestoreFullscreen>,
 ) {
     for action in actions.0.drain(..) {
         match action {
@@ -39,9 +53,20 @@ fn handle_actions(
                 game_data.change_field(&field_name, &op);
             }
             ElementAction::ChangeViewStack(op) => match op {
-                ViewStackOp::Push(view_id) => {
-                    view_stack.0.push(view_id.clone());
-                    if let Some(view) = view_map.0.get(&view_id) {
+                ViewStackOp::Push(new_view) => {
+                    if let Some(current_view) = view_stack.0.last() {
+                        if let Some(view) = view_map.0.get(current_view) {
+                            for element_id in view.0.iter() {
+                                for (entity, id) in elements_query.iter() {
+                                    if id.0 == *element_id {
+                                        commands.entity(entity).despawn_recursive();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    view_stack.0.push(new_view.clone());
+                    if let Some(view) = view_map.0.get(&new_view) {
                         for element_id in view.0.iter() {
                             if let Some(element) = element_map.0.get(element_id) {
                                 spawn_element(
@@ -58,8 +83,8 @@ fn handle_actions(
                     }
                 }
                 ViewStackOp::Pop() => {
-                    if let Some(view_id) = view_stack.0.pop() {
-                        if let Some(view) = view_map.0.get(&view_id) {
+                    if let Some(current_view) = view_stack.0.pop() {
+                        if let Some(view) = view_map.0.get(&current_view) {
                             for element_id in view.0.iter() {
                                 for (entity, id) in elements_query.iter() {
                                     if id.0 == *element_id {
@@ -69,8 +94,181 @@ fn handle_actions(
                             }
                         }
                     }
+                    if let Some(old_view) = view_stack.0.last() {
+                        if let Some(view) = view_map.0.get(old_view) {
+                            for element_id in view.0.iter() {
+                                if let Some(element) = element_map.0.get(element_id) {
+                                    spawn_element(
+                                        &mut commands,
+                                        &asset_server,
+                                        canvas_scale_fit.0,
+                                        canvas_scale_cover.0,
+                                        element_id.clone(),
+                                        element,
+                                        &settings,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            ElementAction::ChangeSetting(op) => match op {
+                SettingOp::SetResolution(width, height) => {
+                    settings.window.width = width;
+                    settings.window.height = height;
+                    for (children, element_id) in parents_query.iter() {
+                        if element_id.0 == "settings_resolution" {
+                            for &child in children.iter() {
+                                if let Ok(mut text) = query.get_mut(child) {
+                                    text.sections[0].value = format!(
+                                        "{} x {}",
+                                        settings.window.width, settings.window.height
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    if let Some(element) = element_map.0.get_mut("settings_resolution") {
+                        match element {
+                            Element::TextImage(text_image) => {
+                                text_image.content = format!(
+                                    "{} x {}",
+                                    settings.window.width, settings.window.height
+                                );
+                            }
+                            _ => (),
+                        }
+                    }
+                    if let Ok(toml_string) = toml::to_string_pretty(&settings.clone()) {
+                        let _ = fs::write(SETTINGS_PATH, toml_string);
+                    }
+                    commands.spawn(CanvasResetRequest);
+                    let mut window = windows.single_mut();
+                    let was_fullscreen = window.mode == WindowMode::BorderlessFullscreen;
+                    window.mode = WindowMode::Windowed;
+                    if was_fullscreen {
+                        restore_fullscreen_flag.0 = true;
+                    }
+                }
+                SettingOp::ToggleWindowMode() => {
+                    let mut window = windows.single_mut();
+                    match settings.window.mode.as_str() {
+                        "fullscreen" => {
+                            settings.window.mode = "windowed".into();
+                            window.resolution = Vec2::new(1280.0, 720.0).into();
+                            window.mode = WindowMode::Windowed;
+                        }
+                        "windowed" => {
+                            settings.window.mode = "fullscreen".into();
+                            window.mode = WindowMode::BorderlessFullscreen;
+                        }
+                        _ => (),
+                    }
+                    for (children, element_id) in parents_query.iter() {
+                        if element_id.0 == "settings_window_mode" {
+                            for &child in children.iter() {
+                                if let Ok(mut text) = query.get_mut(child) {
+                                    text.sections[0].value = settings.window.mode.clone()
+                                }
+                            }
+                        }
+                    }
+                    if let Some(element) = element_map.0.get_mut("settings_window_mode") {
+                        match element {
+                            Element::TextImage(text_image) => {
+                                text_image.content = settings.window.mode.clone()
+                            }
+                            _ => (),
+                        }
+                    }
+                    if let Ok(toml_string) = toml::to_string_pretty(&settings.clone()) {
+                        let _ = fs::write(SETTINGS_PATH, toml_string);
+                    }
+                    commands.spawn(CanvasResetRequest);
+                }
+                SettingOp::ToggleBackgroundImage() => {
+                    match settings.window.background_image.as_str() {
+                        "cover" => {
+                            settings.window.background_image = "fit".into();
+                        }
+                        "fit" => {
+                            settings.window.background_image = "cover".into();
+                        }
+                        _ => (),
+                    }
+                    for (children, element_id) in parents_query.iter() {
+                        if element_id.0 == "settings_background_image" {
+                            for &child in children.iter() {
+                                if let Ok(mut text) = query.get_mut(child) {
+                                    text.sections[0].value =
+                                        settings.window.background_image.clone()
+                                }
+                            }
+                        }
+                    }
+                    if let Some(element) = element_map.0.get_mut("settings_background_image") {
+                        match element {
+                            Element::TextImage(text_image) => {
+                                text_image.content = settings.window.background_image.clone()
+                            }
+                            _ => (),
+                        }
+                    }
+                    if let Ok(toml_string) = toml::to_string_pretty(&settings.clone()) {
+                        let _ = fs::write(SETTINGS_PATH, toml_string);
+                    }
+                    commands.spawn(CanvasResetRequest);
+                }
+                SettingOp::ToggleCustomCursor() => {
+                    match settings.other.custom_cursor {
+                        true => {
+                            settings.other.custom_cursor = false;
+                        }
+                        false => {
+                            settings.other.custom_cursor = true;
+                        }
+                    }
+                    for (children, element_id) in parents_query.iter() {
+                        if element_id.0 == "settings_custom_cursor" {
+                            for &child in children.iter() {
+                                if let Ok(mut text) = query.get_mut(child) {
+                                    text.sections[0].value = match settings.other.custom_cursor {
+                                        true => "on".into(),
+                                        false => "off".into(),
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if let Some(element) = element_map.0.get_mut("settings_custom_cursor") {
+                        match element {
+                            Element::TextImage(text_image) => {
+                                text_image.content = match settings.other.custom_cursor {
+                                    true => "on".into(),
+                                    false => "off".into(),
+                                }
+                            }
+                            _ => (),
+                        }
+                    }
+                    if let Ok(toml_string) = toml::to_string_pretty(&settings.clone()) {
+                        let _ = fs::write(SETTINGS_PATH, toml_string);
+                    }
+                    commands.spawn(CursorResetRequest);
                 }
             },
         }
+    }
+}
+fn restore_fullscreen(
+    mut windows: Query<&mut Window>,
+    mut restore_fullscreen_flag: ResMut<RestoreFullscreen>,
+) {
+    if restore_fullscreen_flag.0 {
+        if let Ok(mut window) = windows.get_single_mut() {
+            window.mode = WindowMode::BorderlessFullscreen;
+        }
+        restore_fullscreen_flag.0 = false;
     }
 }
