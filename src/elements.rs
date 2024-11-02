@@ -117,6 +117,7 @@ pub fn spawn_element(
         "cover" => canvas_scale_cover,
         _ => canvas_scale_fit,
     };
+    let font_handle = asset_server.load("OpenSans-SemiBold.ttf");
     match element {
         Element::Text(text) => {
             commands.spawn((
@@ -124,6 +125,7 @@ pub fn spawn_element(
                     text: Text::from_section(
                         text.content.clone(),
                         TextStyle {
+                            font: font_handle,
                             font_size: text.font_size * canvas_scale_fit,
                             color: text.color,
                             ..default()
@@ -191,6 +193,7 @@ pub fn spawn_element(
                     text: Text::from_section(
                         text_button.content.clone(),
                         TextStyle {
+                            font: font_handle,
                             font_size: text_button.font_size * canvas_scale_fit,
                             color: text_button.text_color,
                             ..default()
