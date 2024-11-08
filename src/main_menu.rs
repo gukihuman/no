@@ -12,17 +12,33 @@ impl Plugin for MainMenuPlugin {
         app.add_systems(Startup, setup);
     }
 }
+const Z_INDEX: f32 = 1.;
+const X_COLUMN: f32 = -575.;
+const Y_1_ROW: f32 = 0.;
+const Y_2_ROW: f32 = -115.;
+const X_EDGE: f32 = 1240.;
+const Y_EDGE: f32 = 680.;
 fn setup(
     mut element_map: ResMut<ElementMap>,
     mut step_map: ResMut<StepMap>,
     mut next_step: ResMut<NextStepID>,
 ) {
     let mut elements = ElementSet::new();
-    elements.insert("main_menu_background".into());
+    elements.insert("chapter_01_initial".into());
     element_map.0.insert(
-        "main_menu_background".into(),
+        "chapter_01_initial".into(),
         Element::Image(ImageElement {
-            path: "main_menu/bunny_initial.webp".into(),
+            path: "chapter_01/initial.webp".into(),
+            ..default()
+        }),
+    );
+    elements.insert("main_menu_logo".into());
+    element_map.0.insert(
+        "main_menu_logo".into(),
+        Element::Image(ImageElement {
+            path: "main_menu_logo.webp".into(),
+            position: Vec3::new(0., 0., Z_INDEX),
+            only_fit_scale: true,
             ..default()
         }),
     );
@@ -31,18 +47,18 @@ fn setup(
         "main_menu_version".into(),
         Element::Text(TextElement {
             content: "version 0.1.0".into(),
-            position: Vec3::new(470., -260., 1.),
+            position: Vec3::new(X_EDGE, -Y_EDGE, Z_INDEX),
             anchor: BottomRight,
             ..default()
         }),
     );
-    elements.insert("main_menu_arrow".into());
+    elements.insert("test_arrow".into());
     element_map.0.insert(
-        "main_menu_arrow".into(),
+        "test_arrow".into(),
         Element::Image(ImageElement {
-            path: "main_menu/arrow.webp".into(),
+            path: "wip/test_arrow.webp".into(),
             color: Color::srgba(1., 1., 1., 0.5),
-            position: Vec3::new(0., 0., 1.),
+            position: Vec3::new(0., 0., Z_INDEX),
             actions: Vec::from([
                 ElementAction::ChangeGameData("gold".into(), GameDataOp::SetValue(5)),
                 ElementAction::ChangeGameData("gold".into(), GameDataOp::Increment(10)),
@@ -57,8 +73,8 @@ fn setup(
         Element::TextImage(TextImageElement {
             content: "Start".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., 0., 1.),
-            font_size: 22.,
+            position: Vec3::new(X_COLUMN, Y_1_ROW, Z_INDEX),
+            font_size: 48.,
             actions: Vec::from([ElementAction::ChangeStep("empty".into())]),
             ..default()
         }),
@@ -69,8 +85,8 @@ fn setup(
         Element::TextImage(TextImageElement {
             content: "Settings".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., -50., 1.),
-            font_size: 22.,
+            position: Vec3::new(X_COLUMN, Y_2_ROW, Z_INDEX),
+            font_size: 48.,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Push(
                 "settings_root".into(),
             ))]),

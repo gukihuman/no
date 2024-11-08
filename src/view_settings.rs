@@ -14,34 +14,35 @@ impl Plugin for ViewSettingsPlugin {
         app.add_systems(Startup, (setup_root, setup_resolution));
     }
 }
-const FONT_SIZE: f32 = 20.;
-const RETURN_BUTTON_X: f32 = -200.;
-const ROOT_Z_INDEX: f32 = 10.;
-const ROOT_X_RIGHT_COLUMN: f32 = 80.;
-const ROOT_X_LEFT_COLUMN: f32 = -120.;
-const ROOT_Y_1_ROW: f32 = 100.;
-const ROOT_Y_2_ROW: f32 = 60.;
-const ROOT_Y_3_ROW: f32 = 20.;
-const ROOT_Y_4_ROW: f32 = -20.;
-const RESOLUTION_Z_INDEX: f32 = 20.;
+const FONT_SIZE: f32 = 56.;
+const FONT_SIZE_BUTTON: f32 = 48.;
+const RETURN_BUTTON_X: f32 = -550.;
+const Z_INDEX: f32 = 100.;
+const ROOT_X_RIGHT_COLUMN: f32 = 250.;
+const ROOT_X_LEFT_COLUMN: f32 = -520.;
+const ROOT_Y_1_ROW: f32 = 230.;
+const ROOT_Y_2_ROW: f32 = 115.;
+const ROOT_Y_3_ROW: f32 = 0.;
+const ROOT_Y_4_ROW: f32 = -115.;
 const RESOLUTION_WIDTH: [u32; 6] = [1280, 1366, 1600, 1920, 2560, 3840];
 const RESOLUTION_HEIGHT: [u32; 9] = [720, 768, 900, 1024, 1080, 1200, 1440, 1600, 2160];
-const RESOLUTION_X_SPACING: f32 = 140.;
-const RESOLUTION_Y_SPACING: f32 = 40.;
-const RESOLUTION_X_GRID: f32 = -350.;
-const RESOLUTION_Y_GRID: f32 = 180.;
+const RESOLUTION_X_SPACING: f32 = 370.;
+const RESOLUTION_Y_SPACING: f32 = 115.;
+const RESOLUTION_X_GRID: f32 = -930.;
+const RESOLUTION_Y_GRID: f32 = 560.;
+const Y_EDGE: f32 = 680.;
 fn setup_root(
     mut element_map: ResMut<ElementMap>,
     mut view_map: ResMut<ViewMap>,
     settings: Res<GameSettings>,
 ) {
     let mut elements = ElementSet::new();
-    elements.insert("settings_black_screen".into());
+    elements.insert("resolution_black_screen".into());
     element_map.0.insert(
-        "settings_black_screen".into(),
+        "resolution_black_screen".into(),
         Element::Image(ImageElement {
             path: "black_screen.webp".into(),
-            position: Vec3::new(0., 0., ROOT_Z_INDEX - 1.),
+            position: Vec3::new(0., 0., Z_INDEX - 80.),
             color: Color::srgba(1., 1., 1., 0.98),
             ..default()
         }),
@@ -52,8 +53,8 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: "Return".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., RETURN_BUTTON_X, ROOT_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(0., RETURN_BUTTON_X, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Pop())]),
             ..default()
         }),
@@ -63,8 +64,9 @@ fn setup_root(
         "settings_resolution_text".into(),
         Element::Text(TextElement {
             content: "Resolution".into(),
-            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_1_ROW, ROOT_Z_INDEX),
+            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_1_ROW, Z_INDEX),
             anchor: CenterLeft,
+            font_size: FONT_SIZE,
             ..default()
         }),
     );
@@ -74,8 +76,8 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: format!("{} x {}", settings.window.width, settings.window.height),
             path: "button.webp".into(),
-            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_1_ROW, ROOT_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_1_ROW, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Push(
                 "settings_resolution".into(),
             ))]),
@@ -87,8 +89,9 @@ fn setup_root(
         "settings_window_mode_text".into(),
         Element::Text(TextElement {
             content: "Window mode".into(),
-            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_2_ROW, ROOT_Z_INDEX),
+            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_2_ROW, Z_INDEX),
             anchor: CenterLeft,
+            font_size: FONT_SIZE,
             ..default()
         }),
     );
@@ -98,8 +101,8 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: settings.window.mode.clone(),
             path: "button.webp".into(),
-            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_2_ROW, ROOT_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_2_ROW, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(SettingOp::ToggleWindowMode())]),
             ..default()
         }),
@@ -109,8 +112,9 @@ fn setup_root(
         "settings_background_image_text".into(),
         Element::Text(TextElement {
             content: "Background image".into(),
-            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_3_ROW, ROOT_Z_INDEX),
+            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_3_ROW, Z_INDEX),
             anchor: CenterLeft,
+            font_size: FONT_SIZE,
             ..default()
         }),
     );
@@ -120,8 +124,8 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: settings.window.background_image.clone(),
             path: "button.webp".into(),
-            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_3_ROW, ROOT_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_3_ROW, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(
                 SettingOp::ToggleBackgroundImage(),
             )]),
@@ -133,8 +137,9 @@ fn setup_root(
         "settings_custom_cursor_text".into(),
         Element::Text(TextElement {
             content: "Custom cursor".into(),
-            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_4_ROW, ROOT_Z_INDEX),
+            position: Vec3::new(ROOT_X_LEFT_COLUMN, ROOT_Y_4_ROW, Z_INDEX),
             anchor: CenterLeft,
+            font_size: FONT_SIZE,
             ..default()
         }),
     );
@@ -147,8 +152,8 @@ fn setup_root(
                 false => "off".into(),
             },
             path: "button.webp".into(),
-            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_4_ROW, ROOT_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_4_ROW, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(SettingOp::ToggleCustomCursor())]),
             ..default()
         }),
@@ -162,7 +167,7 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
         "resolution_black_screen".into(),
         Element::Image(ImageElement {
             path: "black_screen.webp".into(),
-            position: Vec3::new(0., 0., RESOLUTION_Z_INDEX - 1.),
+            position: Vec3::new(0., 0., Z_INDEX - 80.),
             color: Color::srgba(1., 1., 1., 0.98),
             ..default()
         }),
@@ -173,8 +178,8 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
         Element::TextImage(TextImageElement {
             content: "Return".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., RETURN_BUTTON_X, RESOLUTION_Z_INDEX),
-            font_size: FONT_SIZE,
+            position: Vec3::new(0., RETURN_BUTTON_X, Z_INDEX),
+            font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Pop())]),
             ..default()
         }),
@@ -190,8 +195,8 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
                 Element::TextImage(TextImageElement {
                     content: format!("{} x {}", width, height),
                     path: "button.webp".into(),
-                    position: Vec3::new(x_pos, y_pos, RESOLUTION_Z_INDEX),
-                    font_size: FONT_SIZE,
+                    position: Vec3::new(x_pos, y_pos, Z_INDEX),
+                    font_size: FONT_SIZE_BUTTON,
                     actions: Vec::from([ElementAction::ChangeSetting(SettingOp::SetResolution(
                         width, height,
                     ))]),
@@ -205,7 +210,8 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
         "resolution_text".into(),
         Element::Text(TextElement {
             content: "You can set any resolution in settings.toml file".into(),
-            position: Vec3::new(0., -240., RESOLUTION_Z_INDEX),
+            position: Vec3::new(0., -Y_EDGE, Z_INDEX),
+            font_size: FONT_SIZE,
             ..default()
         }),
     );

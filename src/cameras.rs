@@ -33,8 +33,8 @@ impl Plugin for CameraPlugin {
         );
     }
 }
-const BACKGROUND_WIDTH: f32 = 960.;
-const BACKGRAUND_HEIGHT: f32 = 540.;
+const BACKGROUND_WIDTH: f32 = 2560.;
+const BACKGRAUND_HEIGHT: f32 = 1440.;
 pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
 pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
 #[derive(Resource)]

@@ -36,8 +36,8 @@ impl Default for GameSettings {
     fn default() -> Self {
         GameSettings {
             window: WindowSettings {
-                width: 1920,
-                height: 1080,
+                width: 2560,
+                height: 1440,
                 mode: "fullscreen".into(),
                 background_image: "cover".into(),
             },
@@ -68,7 +68,7 @@ fn apply_window_settings(settings: &GameSettings) -> WindowPlugin {
     WindowPlugin {
         primary_window: Some(Window {
             mode,
-            present_mode: PresentMode::AutoVsync,
+            present_mode: PresentMode::Fifo,
             title: TITLE.into(),
             resizable: true,
             window_theme: Some(WindowTheme::Dark),

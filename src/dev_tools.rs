@@ -12,6 +12,8 @@ impl Plugin for DevToolsPlugin {
             .add_systems(Update, (update_timer, update_cursor_position));
     }
 }
+const X_EDGE: f32 = 1240.;
+const Y_EDGE: f32 = 680.;
 #[derive(Resource)]
 pub struct DebugTimer(pub Timer);
 fn setup(
@@ -25,8 +27,7 @@ fn setup(
         "dev_tools_gold".into(),
         Element::Text(TextElement {
             content: format!("Gold: {}", game_data.get("gold")).into(),
-            font_size: 18.,
-            position: Vec3::new(-470., 260., 1.),
+            position: Vec3::new(-X_EDGE, Y_EDGE, 1.),
             anchor: TopLeft,
             ..default()
         }),

@@ -23,7 +23,7 @@ impl Default for TextElement {
             content: String::new(),
             position: Vec3::ZERO,
             color: Color::WHITE,
-            font_size: 16.0,
+            font_size: 40.0,
             anchor: Anchor::Center,
         }
     }
@@ -44,7 +44,7 @@ impl Default for TextImageElement {
             content: String::new(),
             path: String::new(),
             position: Vec3::ZERO,
-            font_size: 16.0,
+            font_size: 40.0,
             image_color: Color::WHITE,
             text_color: Color::WHITE,
             actions: Vec::new(),
@@ -57,6 +57,7 @@ pub struct ImageElement {
     pub position: Vec3,
     pub actions: Vec<ElementAction>,
     pub color: Color,
+    pub only_fit_scale: bool,
 }
 impl Default for ImageElement {
     fn default() -> Self {
@@ -65,6 +66,7 @@ impl Default for ImageElement {
             position: Vec3::ZERO,
             actions: Vec::new(),
             color: Color::WHITE,
+            only_fit_scale: false,
         }
     }
 }
@@ -140,6 +142,11 @@ pub fn spawn_element(
             ));
         }
         Element::Image(image) => {
+            let image_scale = if image.only_fit_scale {
+                canvas_scale_fit
+            } else {
+                canvas_scale
+            };
             let mut entity_commands = commands.spawn((
                 SpriteBundle {
                     sprite: Sprite {
@@ -147,7 +154,7 @@ pub fn spawn_element(
                         ..default()
                     },
                     texture: asset_server.load(&image.path),
-                    transform: Transform::from_scale(Vec3::new(canvas_scale, canvas_scale, 1.))
+                    transform: Transform::from_scale(Vec3::new(image_scale, image_scale, 1.))
                         .with_translation(image.position),
                     ..default()
                 },
@@ -159,8 +166,11 @@ pub fn spawn_element(
                     actions: image.actions.clone(),
                     ..default()
                 });
-                entity_commands.insert(OnlyFitScale(false));
             }
+            match image.only_fit_scale {
+                true => entity_commands.insert(OnlyFitScale(true)),
+                false => entity_commands.insert(OnlyFitScale(false)),
+            };
         }
         Element::TextImage(text_button) => {
             let mut entity_commands = commands.spawn((

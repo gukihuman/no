@@ -8,14 +8,14 @@ default-run = "no"
 [dependencies]
 serde = { version = "1.0.213", features = ["derive"] } # settings
 toml = "0.8.19" # settings
-image-webp = "0.1.3" # webp assets
-image = { version = "0.25.4", features = ["webp"] } # webp assets
-walkdir = "2.5.0" # webp assets
-profiling-procmacros = "1.0.15" #webp 
+webp = "0.3.0" # webp
+image-webp = "0.1.3" # webp
+image = { version = "0.25.4", features = ["webp"] } # webp
+walkdir = "2.5.0" # webp
+profiling-procmacros = "1.0.15" #webp
 
 # WARNING: TURN OFF dynamic_linking to build release
 bevy = { version = "0.14.2", features = ["dynamic_linking", "webp"] } # cargo run
-webp = "0.3.0"
 # bevy = { version = "0.14.2", features = ["webp"] } # cargo build --release
 
 [[bin]]
