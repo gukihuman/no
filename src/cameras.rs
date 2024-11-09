@@ -38,9 +38,10 @@ const BACKGRAUND_HEIGHT: f32 = 1440.;
 pub const CANVAS_LAYER: RenderLayers = RenderLayers::layer(0); // settings resolution
 pub const OUTER_LAYER: RenderLayers = RenderLayers::layer(1); // actual screen resolution
 #[derive(Resource)]
-pub struct CanvasScaleFit(pub f32);
-#[derive(Resource)]
-pub struct CanvasScaleCover(pub f32);
+pub struct CanvasScale {
+    pub fit: f32,
+    pub cover: f32,
+}
 #[derive(Resource)]
 pub struct OuterScale(pub f32);
 #[derive(Resource)]
@@ -106,8 +107,10 @@ pub fn setup_cameras(
     commands.spawn((Camera2dBundle::default(), OuterCamera, OUTER_LAYER));
     let scale_x = canvas_size.width as f32 / BACKGROUND_WIDTH;
     let scale_y = canvas_size.height as f32 / BACKGRAUND_HEIGHT;
-    commands.insert_resource(CanvasScaleFit(scale_x.min(scale_y)));
-    commands.insert_resource(CanvasScaleCover(scale_x.max(scale_y)));
+    commands.insert_resource(CanvasScale {
+        fit: scale_x.min(scale_y),
+        cover: scale_x.max(scale_y),
+    });
     commands.insert_resource(OuterScale(1.));
 }
 fn fit_canvas(
@@ -150,8 +153,7 @@ pub fn reset_canvas(
     elements_query: Query<(Entity, &ElementId)>,
     current_step: Res<CurrentStepID>,
     element_map: ResMut<ElementMap>,
-    mut canvas_scale_fit: ResMut<CanvasScaleFit>,
-    mut canvas_scale_cover: ResMut<CanvasScaleCover>,
+    mut canvas_scale: ResMut<CanvasScale>,
     view_stack: ResMut<ViewStack>,
     view_map: Res<ViewMap>,
     asset_server: Res<AssetServer>,
@@ -186,8 +188,8 @@ pub fn reset_canvas(
             camera.target = RenderTarget::Image(new_handle);
             let scale_x = canvas_size.width as f32 / BACKGROUND_WIDTH;
             let scale_y = canvas_size.height as f32 / BACKGRAUND_HEIGHT;
-            canvas_scale_fit.0 = scale_x.min(scale_y);
-            canvas_scale_cover.0 = scale_x.max(scale_y);
+            canvas_scale.fit = scale_x.min(scale_y);
+            canvas_scale.cover = scale_x.max(scale_y);
             transform.scale = Vec3::new(outer_scale.0, outer_scale.0, 1.);
         }
         for (entity, _) in elements_query.iter() {
@@ -199,8 +201,8 @@ pub fn reset_canvas(
                     spawn_element(
                         &mut commands,
                         &asset_server,
-                        canvas_scale_fit.0,
-                        canvas_scale_cover.0,
+                        canvas_scale.fit,
+                        canvas_scale.cover,
                         element_id.clone(),
                         element,
                         &settings,
@@ -215,8 +217,8 @@ pub fn reset_canvas(
                         spawn_element(
                             &mut commands,
                             &asset_server,
-                            canvas_scale_fit.0,
-                            canvas_scale_cover.0,
+                            canvas_scale.fit,
+                            canvas_scale.cover,
                             element_id.clone(),
                             element,
                             &settings,

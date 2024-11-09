@@ -5,4 +5,4 @@ mode = "fullscreen"
 background_image = "fit"
 
 [other]
-custom_cursor = true
+custom_cursor = false

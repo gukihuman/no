@@ -1,6 +1,6 @@
 use crate::{
     actions::Actions,
-    cameras::{CanvasScaleCover, CanvasScaleFit},
+    cameras::CanvasScale,
     cursor::{update_cursor_position, CursorPosition},
     elements::{ElementAction, ElementId, OnlyFitScale},
     settings::GameSettings,
@@ -40,8 +40,7 @@ fn handle_interactions(
     )>,
     mouse_button: Res<ButtonInput<MouseButton>>,
     images: Res<Assets<Image>>,
-    canvas_scale_fit: Res<CanvasScaleFit>,
-    canvas_scale_cover: Res<CanvasScaleCover>,
+    canvas_scale: Res<CanvasScale>,
     cursor_position: Res<CursorPosition>,
     settings: Res<GameSettings>,
     view_stack: Res<ViewStack>,
@@ -54,15 +53,15 @@ fn handle_interactions(
         if let Some(image) = images.get(image_handle) {
             let mut sprite_size = Vec2::new(image.size().x as f32, image.size().y as f32);
             match settings.window.background_image.as_str() {
-                "fit" => sprite_size = sprite_size * canvas_scale_fit.0,
+                "fit" => sprite_size = sprite_size * canvas_scale.fit,
                 "cover" => {
                     if only_fit_scale.0 {
-                        sprite_size = sprite_size * canvas_scale_fit.0
+                        sprite_size = sprite_size * canvas_scale.fit
                     } else {
-                        sprite_size = sprite_size * canvas_scale_cover.0
+                        sprite_size = sprite_size * canvas_scale.cover
                     }
                 }
-                _ => sprite_size = sprite_size * canvas_scale_fit.0,
+                _ => sprite_size = sprite_size * canvas_scale.fit,
             };
             let sprite_pos = transform.translation().truncate();
             let half_size = sprite_size / 2.0;

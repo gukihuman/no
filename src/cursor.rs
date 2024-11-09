@@ -1,6 +1,6 @@
 use crate::{
     actions::handle_actions,
-    cameras::{setup_cameras, CanvasScaleFit, OuterCamera, OuterScale, OUTER_LAYER},
+    cameras::{setup_cameras, CanvasScale, OuterCamera, OuterScale, OUTER_LAYER},
     settings::GameSettings,
 };
 use bevy::prelude::*;
@@ -45,7 +45,7 @@ pub fn update_cursor_position(
     mut query: Query<&mut Transform, With<Cursor>>,
     windows: Query<&Window>,
     cameras: Query<(&Camera, &GlobalTransform), With<OuterCamera>>,
-    canvas_scale_fit: Res<CanvasScaleFit>,
+    canvas_scale: Res<CanvasScale>,
     outer_scale: Res<OuterScale>,
     mut cursor_position: ResMut<CursorPosition>,
 ) {
@@ -59,8 +59,8 @@ pub fn update_cursor_position(
     for mut transform in query.iter_mut() {
         transform.translation = position.extend(CURSOR_Z_INDEX);
         transform.scale = Vec3::new(
-            canvas_scale_fit.0 * outer_scale.0,
-            canvas_scale_fit.0 * outer_scale.0,
+            canvas_scale.fit * outer_scale.0,
+            canvas_scale.fit * outer_scale.0,
             1.,
         );
     }

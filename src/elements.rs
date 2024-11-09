@@ -1,5 +1,5 @@
 use crate::{interactions::Interactive, settings::GameSettings};
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{prelude::*, sprite::Anchor, text::Text2dBounds};
 use std::collections::HashMap;
 pub struct ElementsPlugin;
 impl Plugin for ElementsPlugin {
@@ -16,6 +16,7 @@ pub struct TextElement {
     pub color: Color,
     pub font_size: f32,
     pub anchor: Anchor,
+    pub bounds: Vec2,
 }
 impl Default for TextElement {
     fn default() -> Self {
@@ -25,6 +26,7 @@ impl Default for TextElement {
             color: Color::WHITE,
             font_size: 40.0,
             anchor: Anchor::Center,
+            bounds: Vec2::splat(f32::INFINITY),
         }
     }
 }
@@ -72,10 +74,16 @@ impl Default for ImageElement {
 }
 #[derive(Component, Clone)]
 pub enum ElementAction {
+    Confirm(ConfirmAction),
     ChangeStep(String),
     ChangeGameData(String, GameDataOp),
     ChangeViewStack(ViewStackOp),
     ChangeSetting(SettingOp),
+    ExitApp,
+}
+#[derive(Component, Clone)]
+pub enum ConfirmAction {
+    ExitApp,
 }
 #[derive(Clone)]
 pub enum GameDataOp {
@@ -114,7 +122,7 @@ pub fn spawn_element(
     element: &Element,
     settings: &GameSettings,
 ) {
-    let canvas_scale = match settings.window.background_image.as_str() {
+    let active_canvas_scale = match settings.window.background_image.as_str() {
         "fit" => canvas_scale_fit,
         "cover" => canvas_scale_cover,
         _ => canvas_scale_fit,
@@ -135,6 +143,7 @@ pub fn spawn_element(
                     ),
                     text_anchor: text.anchor,
                     transform: Transform::from_translation(text.position * canvas_scale_fit),
+                    text_2d_bounds: Text2dBounds { size: text.bounds },
                     ..default()
                 },
                 OnlyFitScale(true),
@@ -145,7 +154,7 @@ pub fn spawn_element(
             let image_scale = if image.only_fit_scale {
                 canvas_scale_fit
             } else {
-                canvas_scale
+                active_canvas_scale
             };
             let mut entity_commands = commands.spawn((
                 SpriteBundle {

@@ -14,10 +14,11 @@ impl Plugin for ViewSettingsPlugin {
         app.add_systems(Startup, (setup_root, setup_resolution));
     }
 }
+const Z_INDEX: f32 = 100.;
 const FONT_SIZE: f32 = 56.;
 const FONT_SIZE_BUTTON: f32 = 48.;
-const RETURN_BUTTON_X: f32 = -550.;
-const Z_INDEX: f32 = 100.;
+const OPACITY: f32 = 0.6;
+const RETURN_BUTTON_Y: f32 = -550.;
 const ROOT_X_RIGHT_COLUMN: f32 = 250.;
 const ROOT_X_LEFT_COLUMN: f32 = -520.;
 const ROOT_Y_1_ROW: f32 = 230.;
@@ -53,7 +54,8 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: "Return".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., RETURN_BUTTON_X, Z_INDEX),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
+            position: Vec3::new(0., RETURN_BUTTON_Y, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Pop())]),
             ..default()
@@ -76,6 +78,7 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: format!("{} x {}", settings.window.width, settings.window.height),
             path: "button.webp".into(),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
             position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_1_ROW, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Push(
@@ -101,6 +104,7 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: settings.window.mode.clone(),
             path: "button.webp".into(),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
             position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_2_ROW, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(SettingOp::ToggleWindowMode())]),
@@ -124,6 +128,7 @@ fn setup_root(
         Element::TextImage(TextImageElement {
             content: settings.window.background_image.clone(),
             path: "button.webp".into(),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
             position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_3_ROW, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(
@@ -152,6 +157,7 @@ fn setup_root(
                 false => "off".into(),
             },
             path: "button.webp".into(),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
             position: Vec3::new(ROOT_X_RIGHT_COLUMN, ROOT_Y_4_ROW, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeSetting(SettingOp::ToggleCustomCursor())]),
@@ -178,7 +184,8 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
         Element::TextImage(TextImageElement {
             content: "Return".into(),
             path: "button.webp".into(),
-            position: Vec3::new(0., RETURN_BUTTON_X, Z_INDEX),
+            image_color: Color::srgba(1., 1., 1., OPACITY),
+            position: Vec3::new(0., RETURN_BUTTON_Y, Z_INDEX),
             font_size: FONT_SIZE_BUTTON,
             actions: Vec::from([ElementAction::ChangeViewStack(ViewStackOp::Pop())]),
             ..default()
@@ -195,6 +202,7 @@ fn setup_resolution(mut element_map: ResMut<ElementMap>, mut view_map: ResMut<Vi
                 Element::TextImage(TextImageElement {
                     content: format!("{} x {}", width, height),
                     path: "button.webp".into(),
+                    image_color: Color::srgba(1., 1., 1., OPACITY),
                     position: Vec3::new(x_pos, y_pos, Z_INDEX),
                     font_size: FONT_SIZE_BUTTON,
                     actions: Vec::from([ElementAction::ChangeSetting(SettingOp::SetResolution(

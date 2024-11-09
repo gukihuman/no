@@ -1,5 +1,5 @@
 use crate::{
-    cameras::{CanvasScaleCover, CanvasScaleFit},
+    cameras::CanvasScale,
     elements::{spawn_element, ElementId, ElementMap},
     settings::GameSettings,
 };
@@ -31,8 +31,7 @@ fn on_step_change(
     next_step_id: Res<NextStepID>,
     elements_query: Query<(Entity, &ElementId)>,
     asset_server: Res<AssetServer>,
-    canvas_scale_fit: Res<CanvasScaleFit>,
-    canvas_scale_cover: Res<CanvasScaleCover>,
+    canvas_scale: Res<CanvasScale>,
     element_map: Res<ElementMap>,
     step_map: Res<StepMap>,
     settings: Res<GameSettings>,
@@ -56,8 +55,8 @@ fn on_step_change(
                     spawn_element(
                         &mut commands,
                         &asset_server,
-                        canvas_scale_fit.0,
-                        canvas_scale_cover.0,
+                        canvas_scale.fit,
+                        canvas_scale.cover,
                         element_id,
                         element,
                         &settings,

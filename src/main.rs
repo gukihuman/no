@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 mod actions;
 mod cameras;
+mod confirm;
 mod cursor;
 mod dev_tools;
 mod elements;
@@ -26,6 +27,7 @@ fn main() {
         view_settings::ViewSettingsPlugin,
         views::ViewsPlugin,
         actions::ClicksPlugin,
+        confirm::ConfirmPlugin,
     ))
     .run();
 }

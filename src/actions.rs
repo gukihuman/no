@@ -1,8 +1,9 @@
 use crate::{
-    cameras::{CanvasResetRequest, CanvasScaleCover, CanvasScaleFit},
+    cameras::{CanvasResetRequest, CanvasScale},
     cursor::CursorResetRequest,
     elements::{
-        spawn_element, Element, ElementAction, ElementId, ElementMap, SettingOp, ViewStackOp,
+        spawn_element, ConfirmAction, Element, ElementAction, ElementId, ElementMap, SettingOp,
+        ViewStackOp,
     },
     game_data::GameData,
     settings::{GameSettings, SETTINGS_PATH},
@@ -14,35 +15,35 @@ use std::fs;
 pub struct ClicksPlugin;
 impl Plugin for ClicksPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Actions>()
-            .init_resource::<RestoreFullscreen>()
+        app.insert_resource(Actions(Vec::new()))
+            .insert_resource(RestoreFullscreen(false))
             .add_systems(
                 Update,
                 (handle_actions, restore_fullscreen.before(handle_actions)),
             );
     }
 }
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct Actions(pub Vec<ElementAction>);
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct RestoreFullscreen(bool);
 pub fn handle_actions(
+    mut commands: Commands,
     mut actions: ResMut<Actions>,
     mut next_step: ResMut<NextStepID>,
     mut game_data: ResMut<GameData>,
     mut view_stack: ResMut<ViewStack>,
     view_map: Res<ViewMap>,
     mut element_map: ResMut<ElementMap>,
-    mut commands: Commands,
     asset_server: Res<AssetServer>,
     elements_query: Query<(Entity, &ElementId)>,
-    canvas_scale_fit: Res<CanvasScaleFit>,
-    canvas_scale_cover: Res<CanvasScaleCover>,
+    canvas_scale: Res<CanvasScale>,
     mut settings: ResMut<GameSettings>,
     mut query: Query<&mut Text>,
     parents_query: Query<(&Children, &ElementId)>,
     mut windows: Query<&mut Window>,
     mut restore_fullscreen_flag: ResMut<RestoreFullscreen>,
+    mut app_exit_events: EventWriter<AppExit>,
 ) {
     for action in actions.0.drain(..) {
         match action {
@@ -72,8 +73,8 @@ pub fn handle_actions(
                                 spawn_element(
                                     &mut commands,
                                     &asset_server,
-                                    canvas_scale_fit.0,
-                                    canvas_scale_cover.0,
+                                    canvas_scale.fit,
+                                    canvas_scale.cover,
                                     element_id.clone(),
                                     element,
                                     &settings,
@@ -101,8 +102,8 @@ pub fn handle_actions(
                                     spawn_element(
                                         &mut commands,
                                         &asset_server,
-                                        canvas_scale_fit.0,
-                                        canvas_scale_cover.0,
+                                        canvas_scale.fit,
+                                        canvas_scale.cover,
                                         element_id.clone(),
                                         element,
                                         &settings,
@@ -258,6 +259,60 @@ pub fn handle_actions(
                     commands.spawn(CursorResetRequest);
                 }
             },
+            ElementAction::Confirm(confirm_action) => {
+                match confirm_action {
+                    ConfirmAction::ExitApp => {
+                        if let Some(element) = element_map.0.get_mut("confirm_text") {
+                            match element {
+                                Element::Text(text) => {
+                                    text.content =
+                                        "Are you sure? Any unsaved changes will be lost."
+                                            .to_string();
+                                }
+                                _ => (),
+                            }
+                        }
+                        if let Some(element) = element_map.0.get_mut("confirm_button") {
+                            match element {
+                                Element::TextImage(text_image) => {
+                                    text_image.actions = Vec::from([ElementAction::ExitApp]);
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+                if let Some(current_view) = view_stack.0.last() {
+                    if let Some(view) = view_map.0.get(current_view) {
+                        for element_id in view.0.iter() {
+                            for (entity, id) in elements_query.iter() {
+                                if id.0 == *element_id {
+                                    commands.entity(entity).despawn_recursive();
+                                }
+                            }
+                        }
+                    }
+                }
+                view_stack.0.push("confirm".to_string());
+                if let Some(view) = view_map.0.get(&"confirm".to_string()) {
+                    for element_id in view.0.iter() {
+                        if let Some(element) = element_map.0.get(element_id) {
+                            spawn_element(
+                                &mut commands,
+                                &asset_server,
+                                canvas_scale.fit,
+                                canvas_scale.cover,
+                                element_id.clone(),
+                                element,
+                                &settings,
+                            );
+                        }
+                    }
+                }
+            }
+            ElementAction::ExitApp => {
+                app_exit_events.send(AppExit::Success);
+            }
         }
     }
 }
